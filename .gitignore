@@ -1,0 +1,10 @@
+# Audit files (运行时生成)
+.audit/
+AUDIT.md
+DECISIONS.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
