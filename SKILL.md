@@ -1,11 +1,33 @@
 ---
 name: spec-runner
-description: Spec-Runner 是 OpenSpec 的批量执行引擎。当用户请求：(1) 批量执行多个 CPs（cps.md 开发计划），(2) 单个复杂功能需要全流程管理（3 道关卡 + 审计），(3) 需要自动决策和审计追踪时使用此技能。接受 Change Proposals 草案，执行完整开发流程（创建提案→设计拆解→3道关卡→评审提案→Apply施工→测试验证→归档），输出实现结果和审计报告。
+description: OpenSpec 执行引擎。自动执行 Change Proposals：创建提案→设计拆解→3道关卡→评审→Apply→测试→归档。支持单 CP/批量执行，自动决策，完整审计。
 ---
 
 # Spec-Runner 开发框架
 
-Spec-Runner 是 **OpenSpec 的批量执行引擎**，将多个 Change Proposals（变更提案）按照规范自动执行完整开发流程。它整合了 OpenSpec 的 delta spec 格式，通过自动决策、审计追踪，实现从提案到交付的自动化。
+Spec-Runner 是 **OpenSpec 的执行引擎**，将 Change Proposals（变更提案）按照规范自动执行完整开发流程。
+
+## 快速开始
+
+**最小示例**：
+
+```bash
+# 用户输入（任一形式）
+"用 spec-runner 帮我实现用户认证功能"
+"执行 cps.md 中的开发计划"
+"创建一个 add-user-auth 的提案并完整实现"
+
+# spec-runner 自动执行
+步骤 1：创建提案 → 步骤 2：设计拆解 → 步骤 3：3 道关卡
+→ 步骤 4：评审提案 → 步骤 5：Apply → 步骤 6：测试 → 步骤 7：归档
+
+# 输出
+- changes/[change-id]/proposal.md
+- changes/[change-id]/tasks.md
+- changes/[change-id]/AUDIT.md
+- changes/[change-id]/DECISIONS.md
+- 完成报告
+```
 
 ## 核心定位
 
@@ -13,149 +35,125 @@ Spec-Runner 是 **OpenSpec 的批量执行引擎**，将多个 Change Proposals�
 ┌─────────────────────────────────────────────────────────────┐
 │                     OpenSpec 生态                            │
 ├─────────────────────────────────────────────────────────────┤
-│  OpenSpec (规范层)   →  定义 CP 结构、delta spec 格式、3 阶段  │
-│  Spec-Runner (执行层) →  批量执行、自动决策、审计追踪           │
+│  OpenSpec (规范层)   →  定义 CP 结构、delta spec 格式        │
+│  Spec-Runner (执行层) →  自动执行、自动决策、审计追踪         │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## 触发场景
+
+**用户可能使用的触发词**：
+- "用 spec-runner 执行..."
+- "批量执行 cps.md"
+- "创建并实现一个 proposal"
+- "帮我从提案到交付"
+- "spec-runner：xxx 功能"
+
+**自动识别场景**：
+- 输入包含多个功能描述 → 自动进入多 CP 批量执行模式
+- 输入是单个功能/需求 → 自动进入单 CP 执行模式
+- 输入是 cps.md 文件 → 自动解析并批量执行
+
+## 前置条件
+
+1. **OpenSpec 已初始化**：项目目录下存在 `openspec/` 目录
+2. **OpenSpec CLI 可用**：`openspec` 命令可用
+3. **项目规范存在**：`openspec/project.md` 文件存在
+
+## 不适用场景
+
+- **简单 bug 修复**：直接修复，不需要走完整流程
+- **纯文档更新**：直接修改文档
+- **配置变更**：直接修改配置
+- **用户明确要求手动控制**：用户说"让我确认"、"等我问"等
 
 ## 核心原则
 
-- **Delta Spec 驱动**：使用 OpenSpec 的 ADDED/MODIFIED/REMOVED Requirements 格式
-- **输入即草案**：接受 CPs.md 草案，转换为正式 openspec proposal
-- **自动决策**：对 TBD 问题基于 openspec/project.md、已归档提案、现有代码综合决策并记录
-- **完整审计**：每个步骤记录决策过程、时间线、文件变更
-- **顺序执行**：按 cps.md 顺序从前向后逐个执行 CP
+| 原则 | 说明 |
+|------|------|
+| **Delta Spec 驱动** | 使用 OpenSpec 的 ADDED/MODIFIED/REMOVED Requirements 格式 |
+| **输入即草案** | 接受 CPs.md 草案，转换为正式 openspec proposal |
+| **自动决策** | 对 TBD 问题基于 project.md、归档提案、现有代码综合决策并记录 |
+| **完整审计** | 每个步骤记录决策过程、时间线、文件变更 |
+| **连续执行** | spec-runner 模式下，所有阶段自动流转，无需等待确认 |
+
+## 连续执行原则（最高优先级）
+
+**【spec-runner 模式下，所有阶段之间自动流转，不要停下等待确认】**
+
+```
+流程链：创建提案 → 设计拆解 → 3道关卡 → 评审提案 → Apply施工 → 测试验证 → 归档
+```
+
+| 可能的中断点 | 行为 | 记录方式 |
+|-------------|------|----------|
+| 不明确的需求 | 基于 openspec/project.md 自主决策 | 记录到 DECISIONS.md |
+| 验证/测试失败 | 修复后重试，最多 3 次 | 失败记录到 AUDIT.md 并继续 |
+| 评审发现冲突 | Type A 直接重写，Type B 记录并保留 | 记录到 DECISIONS.md |
+| Archive 条件不满足 | 记录问题，继续（多 CP）或报告（单 CP） | 记录到 AUDIT.md |
+
+**关键词解读规则**（spec-runner 模式下）：
+- "请确认"、"如果需要"、"建议"、"询问" → 自动执行并记录
+- "暂停"、"等待" → 忽略，继续执行
+- "审阅"、"批准" → 自动批准并继续
 
 ---
 
-## 主流程：批量执行模式 ⭐
+# 单 CP 执行模式（核心）
 
-**触发条件**：用户提供一个包含多个 change proposals 的开发计划文件
+这是 spec-runner 的核心执行单元。**多 CP 批量执行就是循环执行这个单 CP 流程**。
 
-### 输入格式
-
-```markdown
-# 开发计划
-
-## CP-1: add-user-auth
-描述：实现用户认证功能
-优先级：高
-
-## CP-2: add-profile-management
-描述：用户资料管理
-优先级：中
-```
-
-### 执行流程
+## 执行流程（7 步）
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  1. 准备阶段                                                 │
-│     - 运行 openspec list 查看现有活跃 changes                │
-│     - 读取 openspec/project.md 获取项目规则                  │
-│     - 查阅已归档提案（changes/archive/），了解历史决策        │
-│     - 扫描与本次提案相关的已实现代码                         │
+│  步骤 1：创建提案                                             │
+│     ├─ 读取 references/proposal_single_prompt.md              │
+│     ├─ 创建 proposal.md（Why, What, Impact）                 │
+│     ├─ 创建 tasks.md（粗粒度 6-12 条）                        │
+│     ├─ 创建 delta specs（ADDED/MODIFIED/REMOVED）            │
+│     ├─ 初始化 AUDIT.md、.audit/ 目录                          │
+│     ├─ 运行 openspec validate <change-id> --strict            │
+│     └─ 验证通过 → 进入步骤 2，不要停下                         │
 ├─────────────────────────────────────────────────────────────┤
-│  2. 对每个 CP 执行完整流程（按 cps.md 顺序从前向后）         │
-│     ┌─────────────────────────────────────────────────────┐ │
-│     │ 2.1 创建提案（草案 → 正式 openspec proposal）         │ │
-│     │     - 创建 proposal.md, tasks.md, delta specs        │ │
-│     │     - 运行 openspec validate <change-id> --strict    │ │
-│     ├─────────────────────────────────────────────────────┤ │
-│     │ 2.2 设计拆解                                         │ │
-│     │     - 拆解 tasks.md 到 0.5-1 天/任务                  │ │
-│     ├─────────────────────────────────────────────────────┤ │
-│     │ 2.3 3 道关卡打磨                                     │ │
-│     │     - 复述对齐、边界异常、可执行性                     │ │
-│     │     - TBD 自动决策（代价风险分析），记录到 DECISIONS.md │ │
-│     ├─────────────────────────────────────────────────────┤ │
-│     │ 2.4 评审提案                                         │ │
-│     │     读取 references/proposal_review_prompt.md        │ │
-│     │     - 对比 openspec/project.md 检查规范对齐           │ │
-│     │     - 查阅已归档提案，了解历史决策和实现方式          │ │
-│     │     - 扫描与本次提案相关的已实现代码，确保一致性      │ │
-│     │     - Type A 违规：直接重写                           │ │
-│     │     - Type B 演进：保留并论证                         │ │
-│     ├─────────────────────────────────────────────────────┤ │
-│     │ 2.5 Apply 施工                                       │ │
-│     │     - 按 tasks.md 顺序执行                           │ │
-│     │     - 每完成一项打勾                                  │ │
-│     ├─────────────────────────────────────────────────────┤ │
-│     │ 2.6 测试验证                                         │ │
-│     │     - 运行单元测试、集成测试                          │ │
-│     │     - 测试全绿后继续                                  │ │
-│     ├─────────────────────────────────────────────────────┤ │
-│     │ 2.7 归档                                             │ │
-│     │     - 确认 tasks 全部完成                             │ │
-│     │     - 运行 openspec archive <change-id> --yes        │ │
-│     └─────────────────────────────────────────────────────┘ │
+│  步骤 2：设计拆解                                             │
+│     ├─ 读取 references/design_tasks_prompt.md                 │
+│     ├─ 拆解 tasks.md 到 0.5-1 天/任务                          │
+│     ├─ 每条任务包含：目的、改动文件、关键点、验收              │
+│     └─ 完成 → 进入步骤 3，不要停下                            │
 ├─────────────────────────────────────────────────────────────┤
-│  3. 生成执行报告                                             │
-│     - 输出 BATCH_EXECUTION_REPORT.md                        │
-│     - 包含每个 CP 的状态、耗时、关键决策、审计链接            │
+│  步骤 3：3 道关卡打磨                                         │
+│     ├─ 读取 references/three_gates_prompt.md                  │
+│     ├─ 复述对齐、边界异常、可执行性                            │
+│     ├─ TBD 决策（含代价风险分析）记录到 DECISIONS.md          │
+│     └─ 完成 → 进入步骤 4，不要停下                            │
+├─────────────────────────────────────────────────────────────┤
+│  步骤 4：评审提案                                             │
+│     ├─ 读取 references/proposal_review_prompt.md              │
+│     ├─ 对比 openspec/project.md 检查规范对齐                   │
+│     ├─ Type A 违规：直接重写  │  Type B 演进：保留并论证      │
+│     └─ 完成 → 自动批准，进入步骤 5，不要停下                   │
+├─────────────────────────────────────────────────────────────┤
+│  步骤 5：Apply 施工                                           │
+│     ├─ 读取 references/apply_prompt.md                        │
+│     ├─ 严格按 tasks.md 顺序执行                               │
+│     ├─ 每完成一项逐项打勾，使用 TodoWrite 跟踪进度            │
+│     └─ tasks 全部完成 → 运行测试，进入步骤 6，不要停下        │
+├─────────────────────────────────────────────────────────────┤
+│  步骤 6：测试验证                                             │
+│     ├─ 运行单元测试：pytest / npm test                        │
+│     ├─ 测试失败 → 修复后重测，最多 3 次                        │
+│     └─ 测试全绿 → 进入步骤 7，不要停下                         │
+├─────────────────────────────────────────────────────────────┤
+│  步骤 7：归档                                                 │
+│     ├─ 读取 references/archive_prompt.md                      │
+│     ├─ 自动确认 tasks 全部完成                               │
+│     ├─ 运行 openspec archive <change-id> --yes                │
+│     └─ 归档完成 → 输出完成报告，流程结束                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-详见 [references/batch_execute_prompt.md](references/batch_execute_prompt.md)
-
----
-
-## 单 CP 执行模式
-
-**触发条件**：用户直接要求处理单个 change
-
-### 执行流程
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  1. 创建提案                                                 │
-│     读取 references/proposal_single_prompt.md                │
-│     - 创建 proposal.md（Why, What, Impact）                 │
-│     - 创建 tasks.md（粗粒度 6-12 条）                        │
-│     - 创建 delta specs（ADDED/MODIFIED/REMOVED）            │
-│     - 初始化 AUDIT.md、.audit/ 目录                          │
-│     - 运行 openspec validate <change-id> --strict            │
-├─────────────────────────────────────────────────────────────┤
-│  2. 设计拆解                                                 │
-│     读取 references/design_tasks_prompt.md                   │
-│     - 拆解 tasks.md 到 0.5-1 天/任务                          │
-│     - 每条任务包含：目的、改动文件、关键点、验收              │
-├─────────────────────────────────────────────────────────────┤
-│  3. 3 道关卡打磨                                             │
-│     读取 references/three_gates_prompt.md                    │
-│     - 复述对齐：防止理解偏差                                 │
-│     - 边界与异常：列出 15 个场景，标注纳入/推迟              │
-│     - 可执行性：确保每条任务可独立完成                       │
-│     - TBD 决策（含代价风险分析）记录到 DECISIONS.md          │
-├─────────────────────────────────────────────────────────────┤
-│  4. 评审提案                                                 │
-│     读取 references/proposal_review_prompt.md                │
-│     - 对比 openspec/project.md 检查规范对齐                   │
-│     - 查阅已归档提案，了解历史决策和实现方式                  │
-│     - 扫描与本次提案相关的已实现代码，确保一致性              │
-│     - Type A 违规：直接重写                                  │
-│     - Type B 演进：保留并论证                                │
-├─────────────────────────────────────────────────────────────┤
-│  5. Apply 施工                                               │
-│     读取 references/apply_prompt.md                          │
-│     - 严格按 tasks.md 顺序执行                               │
-│     - 每完成一项逐项打勾                                     │
-│     - 遇到不明确处先停下提出澄清                             │
-├─────────────────────────────────────────────────────────────┤
-│  6. 测试验证                                                 │
-│     - 运行单元测试：pytest / npm test                          │
-│     - 运行集成测试（如有）                                      │
-│     - 执行手动 smoke test（关键路径）                           │
-│     - 测试全绿后继续                                            │
-├─────────────────────────────────────────────────────────────┤
-│  7. 归档                                                     │
-│     读取 references/archive_prompt.md                        │
-│     - 确认 tasks 全部完成                                    │
-│     - 运行 openspec archive <change-id> --yes                │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Change Proposal 命名规则
+## Change Proposal 命名规则
 
 `yyyy-mm-dd-n-proposal_name`
 
@@ -164,7 +162,7 @@ Spec-Runner 是 **OpenSpec 的批量执行引擎**，将多个 Change Proposals�
 
 例如：`2026-01-05-1-add-user-auth`, `2026-01-05-2-update-api-error-handling`
 
-### Delta Spec 格式（遵循 OpenSpec）
+## Delta Spec 格式
 
 ```markdown
 ## ADDED Requirements
@@ -187,16 +185,96 @@ The system SHALL provide...
 
 ---
 
-## 审计系统
+# 多 CP 执行模式（批量执行）
+
+多 CP 批量执行 = **准备阶段** + **循环执行单 CP 流程** + **生成报告**
+
+## 输入格式
+
+```markdown
+# 开发计划
+
+## CP-1: add-user-auth
+描述：实现用户认证功能
+优先级：高
+
+## CP-2: add-profile-management
+描述：用户资料管理
+优先级：中
+```
+
+## 执行流程
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  阶段 0：准备阶段                                           │
+│     └─ 加载项目上下文、解析 cps.md 识别所有 CP               │
+├─────────────────────────────────────────────────────────────┤
+│  阶段 1：循环执行单 CP 流程                                  │
+│     for each CP in cps.md:                                  │
+│       调用单 CP 执行模式 (上方 7 步流程)                      │
+│       失败记录到 AUDIT.md，继续下一个 CP                      │
+├─────────────────────────────────────────────────────────────┤
+│  阶段 2：生成执行报告                                       │
+│     └─ 输出 BATCH_EXECUTION_REPORT.md                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# 输出格式
+
+## 单 CP 执行完成后的输出
+
+```markdown
+## 执行完成 ✓
+
+**Change**: [change-id]
+**耗时**: X 小时 Y 分钟
+
+### 完成任务
+- [x] tasks.md 中所有任务已完成
+- [x] 测试全绿（单元 X/Y，集成 A/B）
+- [x] 已归档到 openspec/changes/archive/
+
+### 关键决策
+- TBD-1: xxx → 见 DECISIONS.md
+- TBD-2: yyy → 见 DECISIONS.md
+
+### 审计文件
+- AUDIT.md: changes/[change-id]/AUDIT.md
+- DECISIONS.md: changes/[change-id]/DECISIONS.md
+```
+
+## 多 CP 批量执行完成后的输出
+
+```markdown
+## 批量执行完成 ✓
+
+**计划 CP 数**: N
+**成功完成**: M
+**失败/跳过**: K
+**总耗时**: X 小时
+
+### CP 执行详情
+- CP-1: ✓ 成功 (2h 15m)
+- CP-2: ✓ 成功 (1h 30m)
+- CP-3: ⚠️ 失败 (原因：xxx)
+
+### 审计追踪
+详见 BATCH_EXECUTION_REPORT.md
+
+### 遗留问题
+需要人工介入：...
+```
+
+---
+
+# 审计系统
 
 每个 change 目录在 spec-runner 执行期间包含完整的审计追踪。
 
-> **模板文件**：references/ 目录提供审计模板
-> - `AUDIT_template.md` - 审计日志模板
-> - `DECISIONS_template.md` - 决策日志模板
-> - `AUDIT_snapshot_template.md` - 快照模板
-
-### 审计文件
+## 审计文件
 
 | 文件 | 记录内容 | 说明 |
 |------|----------|------|
@@ -204,52 +282,9 @@ The system SHALL provide...
 | **DECISIONS.md** | TBD 解决方案推理、方案比较权衡 | 决策详细记录 |
 | **.audit/** | 文件变更快照 | 每次 diff 记录 |
 
-> 注意：这些文件是 spec-runner 运行时添加的，不在 openspec 标准结构中。
-
-### AUDIT.md 结构
-
-```markdown
-# 审计日志
-
-## 时间线
-
-| 步骤 | 开始时间 | 结束时间 | 耗时 | 状态 |
-|------|----------|----------|------|------|
-| 创建提案 | 2026-01-05 10:00 | 10:15 | 15m | ✓ |
-| 设计拆解 | 2026-01-05 10:15 | 10:45 | 30m | ✓ |
-| 3道关卡 | 2026-01-05 10:45 | 11:00 | 15m | ✓ |
-| 评审提案 | 2026-01-05 11:00 | 11:10 | 10m | ✓ |
-| Apply施工 | 2026-01-05 11:10 | 14:00 | 2h50m | ✓ |
-| 测试验证 | 2026-01-05 14:00 | 14:30 | 30m | ✓ |
-
-## 决策记录索引
-
-- [TBD-1] 数据模型选择 → 见 DECISIONS.md
-- [TBD-2] API 认证方案 → 见 DECISIONS.md
-
-## 文件变更索引
-
-| 快照 | 文件 | 变更类型 | 关联步骤 |
-|------|------|----------|----------|
-| 001 | proposal.md | 创建 | 创建提案 |
-| 002 | proposal.md | 修改 | 3道关卡 |
-| 003 | proposal.md | 修改 | 评审提案 |
-| 004 | tasks.md | 创建 | 设计拆解 |
-```
-
-### TBD 自动决策策略
-
-| 原则 | 说明 |
-|------|------|
-| 项目利益优先 | 站在对项目整体最有利的角度决策 |
-| 双重视角 | 以首席架构师和首席开发者的视角综合判断 |
-| 不偏不倚 | 不怕难，也不搞过度复杂 |
-| 代价风险分析 | 给出 3 种方案（简单/中等/稳健），比较复杂度、风险、扩展成本 |
-| 记录推理 | 所有 TBD 决策必须记录到 `DECISIONS.md`（包含推理过程） |
-
 ---
 
-## OpenSpec 命令映射
+# OpenSpec 命令映射
 
 | 阶段 | OpenSpec 命令 | 说明 |
 |------|--------------|------|
@@ -260,75 +295,55 @@ The system SHALL provide...
 
 ---
 
-## 文件结构规范
-
-> **说明**：openspec/ 是项目目录（存放 proposals 和 specs），spec-runner/ 是技能目录。
+# 文件结构规范
 
 ```
 openspec/                  # 项目目录
 ├── project.md              # 长期规则（只读参考）
-├── specs/                  # 当前真理 - OpenSpec 格式
+├── specs/                  # 当前真理
 │   └── [capability]/
 │       ├── spec.md         # Requirements + Scenarios
 │       └── design.md       # Technical patterns
-└── changes/                # 提案 - 应该改变什么
+└── changes/                # 提案
     ├── [change-id]/
     │   ├── proposal.md     # Why, What, Impact
     │   ├── tasks.md        # Implementation checklist
-    │   ├── design.md       # Technical decisions (optional)
-    │   ├── DECISIONS.md    # 决策日志（spec-runner 运行时添加）
-    │   ├── AUDIT.md        # 审计日志（spec-runner 运行时添加）
-    │   ├── .audit/         # 文件变更快照（spec-runner 运行时添加）
-    │   │   ├── 001_xxx.md
-    │   │   └── ...
+    │   ├── DECISIONS.md    # 决策日志（spec-runner 添加）
+    │   ├── AUDIT.md        # 审计日志（spec-runner 添加）
+    │   ├── .audit/         # 文件变更快照（spec-runner 添加）
     │   └── specs/          # Delta specs
-    │       └── [capability]/
-    │           └── spec.md # ADDED/MODIFIED/REMOVED
+    │       └── [capability]/spec.md
     └── archive/            # 已完成的 changes
-        └── YYYY-MM-DD-[change-id]/
 
 spec-runner/                # 技能目录
-├── SKILL.md                # 技能定义
-└── references/             # Prompt 模板
-    ├── batch_execute_prompt.md
-    ├── proposal_single_prompt.md
-    ├── design_tasks_prompt.md
-    ├── three_gates_prompt.md
-    ├── proposal_review_prompt.md
-    ├── apply_prompt.md
-    ├── archive_prompt.md
-    ├── AUDIT_template.md
-    ├── DECISIONS_template.md
-    └── AUDIT_snapshot_template.md
+├── SKILL.md                # 本文件
+└── references/             # Prompt 模板（7 个步骤 + 批量执行）
+    ├── proposal_single_prompt.md    # 步骤 1
+    ├── design_tasks_prompt.md       # 步骤 2
+    ├── three_gates_prompt.md        # 步骤 3
+    ├── proposal_review_prompt.md    # 步骤 4
+    ├── apply_prompt.md              # 步骤 5
+    ├── archive_prompt.md            # 步骤 6-7
+    ├── batch_execute_prompt.md      # 多 CP 批量执行
+    └── [审计模板文件...]
 ```
 
 ---
 
-## 与 OpenSpec 的关系
-
-| 特性 | OpenSpec | Spec-Runner |
-|------|----------|-------------|
-| **定位** | 规范层 | 执行引擎 |
-| **核心价值** | 定义 CP 结构和 delta spec 格式 | 批量执行、自动决策、审计 |
-| **文件格式** | proposal.md, tasks.md, delta specs | 兼容 OpenSpec 格式 |
-| **工作流** | 3 阶段（创建/实现/归档） | 3 阶段 + 3 道关卡 + 审计 |
-| **CLI** | openspec 命令 | 调用 openspec 命令 |
-| **审计** | 无 | AUDIT.md + DECISIONS.md + .audit/ |
-
----
-
-## 决策树：何时使用 Spec-Runner
+# 决策树：何时使用 Spec-Runner
 
 ```
 新请求?
 ├─ Bug fix / typo / 配置变更? → 直接修复
+├─ 纯文档更新? → 直接修改文档
 ├─ 单个简单功能? → OpenSpec 标准流程
 ├─ 单个复杂功能? → Spec-Runner 单 CP 模式（3 道关卡 + 审计）
-└─ 多个相关功能? → Spec-Runner 批量执行模式 ⭐
+└─ 多个相关功能? → Spec-Runner 多 CP 批量执行
+                     └─ 本质：循环执行单 CP 流程
 ```
 
 ---
 
-## 中文交互
+# 中文交互
 
 本 skill 的所有交互和输出应使用中文，除非用户明确要求英文。
