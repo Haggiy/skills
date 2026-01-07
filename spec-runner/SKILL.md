@@ -19,13 +19,15 @@ Spec-Runner 是 **OpenSpec 的执行引擎**，将 Change Proposals（变更提�
 
 # spec-runner 自动执行
 步骤 1：创建提案 → 步骤 2：设计拆解 → 步骤 3：3 道关卡
-→ 步骤 4：评审提案 → 步骤 5：Apply → 步骤 6：测试 → 步骤 7：归档
+→ 步骤 4：评审提案 → 步骤 5：Apply → 步骤 6：测试
+→ 步骤 7：归档 → 步骤 8：Git提交
 
 # 输出
 - changes/[change-id]/proposal.md
 - changes/[change-id]/tasks.md
 - changes/[change-id]/AUDIT.md
 - changes/[change-id]/DECISIONS.md
+- Git commit（记录在 AUDIT.md）
 - 完成报告
 ```
 
@@ -72,9 +74,12 @@ Spec-Runner 是 **OpenSpec 的执行引擎**，将 Change Proposals（变更提�
 | 原则 | 说明 |
 |------|------|
 | **Delta Spec 驱动** | 使用 OpenSpec 的 ADDED/MODIFIED/REMOVED Requirements 格式 |
+| **场景驱动测试** | 测试从 Delta Spec 的 Scenarios 出发，从功能行为设计测试 |
 | **输入即草案** | 接受 CPs.md 草案，转换为正式 openspec proposal |
 | **自动决策** | 对 TBD 问题基于 project.md、归档提案、现有代码综合决策并记录 |
 | **完整审计** | 每个步骤记录决策过程、时间线、文件变更 |
+| **审计即执行** | 每完成一个动作立即更新 AUDIT.md，禁止延迟或批量记录 |
+| **显式 Git** | Git commit 作为独立步骤（步骤 8）显式执行，不得跳过 |
 | **连续执行** | spec-runner 模式下，所有阶段自动流转，无需等待确认 |
 
 ## 连续执行原则（最高优先级）
@@ -82,7 +87,7 @@ Spec-Runner 是 **OpenSpec 的执行引擎**，将 Change Proposals（变更提�
 **【spec-runner 模式下，所有阶段之间自动流转，不要停下等待确认】**
 
 ```
-流程链：创建提案 → 设计拆解 → 3道关卡 → 评审提案 → Apply施工 → 测试验证 → 归档
+流程链：创建提案 → 设计拆解 → 3道关卡 → 评审提案 → Apply施工 → 测试验证 → 归档 → Git提交
 ```
 
 | 可能的中断点 | 行为 | 记录方式 |
@@ -103,7 +108,7 @@ Spec-Runner 是 **OpenSpec 的执行引擎**，将 Change Proposals（变更提�
 
 这是 spec-runner 的核心执行单元。**多 CP 批量执行就是循环执行这个单 CP 流程**。
 
-## 执行流程（7 步）
+## 执行流程（8 步）
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -113,6 +118,7 @@ Spec-Runner 是 **OpenSpec 的执行引擎**，将 Change Proposals（变更提�
 │     ├─ 创建 tasks.md（粗粒度 6-12 条）                        │
 │     ├─ 创建 delta specs（ADDED/MODIFIED/REMOVED）            │
 │     ├─ 初始化 AUDIT.md、.audit/ 目录                          │
+│     ├─ 【审计检查点】获取时间、更新 AUDIT.md                   │
 │     ├─ 运行 openspec validate <change-id> --strict            │
 │     └─ 验证通过 → 进入步骤 2，不要停下                         │
 ├─────────────────────────────────────────────────────────────┤
@@ -120,36 +126,54 @@ Spec-Runner 是 **OpenSpec 的执行引擎**，将 Change Proposals（变更提�
 │     ├─ 读取 references/design_tasks_prompt.md                 │
 │     ├─ 拆解 tasks.md 到 0.5-1 天/任务                          │
 │     ├─ 每条任务包含：目的、改动文件、关键点、验收              │
+│     ├─ 【场景驱动】根据 Spec Scenarios 设计测试场景            │
+│     ├─ 【审计检查点】获取时间、更新 AUDIT.md、创建快照         │
 │     └─ 完成 → 进入步骤 3，不要停下                            │
 ├─────────────────────────────────────────────────────────────┤
 │  步骤 3：3 道关卡打磨                                         │
 │     ├─ 读取 references/three_gates_prompt.md                  │
 │     ├─ 复述对齐、边界异常、可执行性                            │
 │     ├─ TBD 决策（含代价风险分析）记录到 DECISIONS.md          │
+│     ├─ 【审计检查点】每决策一次立即更新 AUDIT.md 和 DECISIONS.md │
 │     └─ 完成 → 进入步骤 4，不要停下                            │
 ├─────────────────────────────────────────────────────────────┤
 │  步骤 4：评审提案                                             │
 │     ├─ 读取 references/proposal_review_prompt.md              │
 │     ├─ 对比 openspec/project.md 检查规范对齐                   │
 │     ├─ Type A 违规：直接重写  │  Type B 演进：保留并论证      │
+│     ├─ 【审计检查点】获取时间、更新 AUDIT.md                   │
 │     └─ 完成 → 自动批准，进入步骤 5，不要停下                   │
 ├─────────────────────────────────────────────────────────────┤
 │  步骤 5：Apply 施工                                           │
 │     ├─ 读取 references/apply_prompt.md                        │
 │     ├─ 严格按 tasks.md 顺序执行                               │
 │     ├─ 每完成一项逐项打勾，使用 TodoWrite 跟踪进度            │
+│     ├─ 【测试验证】每任务打勾前运行本功能测试，全绿才能打勾   │
+│     ├─ 【审计检查点】每完成一个任务立即更新 AUDIT.md            │
 │     └─ tasks 全部完成 → 运行测试，进入步骤 6，不要停下        │
 ├─────────────────────────────────────────────────────────────┤
 │  步骤 6：测试验证                                             │
-│     ├─ 运行单元测试：pytest / npm test                        │
+│     ├─ 运行全量测试：pytest / npm test                        │
+│     ├─ 【全量门禁】所有测试（新增+现有）必须全绿                │
 │     ├─ 测试失败 → 修复后重测，最多 3 次                        │
+│     ├─ 【审计检查点】记录测试结果到 AUDIT.md                   │
 │     └─ 测试全绿 → 进入步骤 7，不要停下                         │
 ├─────────────────────────────────────────────────────────────┤
 │  步骤 7：归档                                                 │
 │     ├─ 读取 references/archive_prompt.md                      │
 │     ├─ 自动确认 tasks 全部完成                               │
 │     ├─ 运行 openspec archive <change-id> --yes                │
-│     └─ 归档完成 → 输出完成报告，流程结束                      │
+│     ├─ 【审计检查点】获取时间、更新 AUDIT.md                   │
+│     └─ 归档完成 → 进入步骤 8，不要停下                        │
+├─────────────────────────────────────────────────────────────┤
+│  步骤 8：Git 提交 【新增独立步骤】                             │
+│     ├─ 读取 references/git_commit_prompt.md                   │
+│     ├─ 获取当前时间：date "+%Y-%m-%d %H:%M:%S"                │
+│     ├─ 添加本次 change 相关文件到 git                        │
+│     ├─ 生成规范 commit message（含 change-id）                │
+│     ├─ 执行 git commit                                         │
+│     ├─ 获取 commit hash 并记录到 AUDIT.md                     │
+│     └─ 完成 → 输出完成报告，流程结束                          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -233,9 +257,40 @@ The system SHALL provide...
 **耗时**: X 小时 Y 分钟
 
 ### 完成任务
-- [x] tasks.md 中所有任务已完成
+- [x] tasks.md 中所有任务已完成（含测试）
 - [x] 测试全绿（单元 X/Y，集成 A/B）
 - [x] 已归档到 openspec/changes/archive/
+- [x] 已提交到 Git
+
+### 测试报告 [场景驱动测试]
+
+#### 场景覆盖
+
+| 任务 | Requirement | Spec Scenarios | 测试场景 | 测试用例 | 状态 |
+|------|-------------|----------------|----------|----------|------|
+| 任务1 | 功能名称 | N | M | X | ✓ |
+| 任务2 | 功能名称 | N | M | Y | ✓ |
+
+#### 新增测试
+- tests/xxx_test.py: 新增（X 条用例，Y 场景，覆盖 N Scenarios）
+- tests/yyy_test.py: 新增（X 条用例，Y 场景，覆盖 N Scenarios）
+
+#### 修改测试
+- tests/zzz_test.py: 更新（X 条用例，适配新功能）
+
+#### 测试执行汇总
+- Spec Scenarios 覆盖: N/N（100%）
+- 新增测试场景: M 个（来自 Scenarios: N 个，补充边界: K 个）
+- 新增测试用例: X 条
+- 修改测试用例: Y 条
+- 单元测试通过: X/X
+- 集成测试通过: Y/Y
+- 全量测试通过: T/T
+- 代码覆盖率: XX%
+
+### Git 提交
+**Commit**: [commit-hash]
+**Message**: [change-id]: [简短描述]
 
 ### 关键决策
 - TBD-1: xxx → 见 DECISIONS.md
@@ -293,6 +348,17 @@ The system SHALL provide...
 | 创建提案 | `openspec validate <change-id> --strict` | 验证提案格式 |
 | 归档 | `openspec archive <change-id> --yes` | 归档已完成的 change |
 
+# 时间获取命令（审计专用）
+
+| 用途 | 命令 | 输出示例 |
+|------|------|----------|
+| 完整时间戳 | `date "+%Y-%m-%d %H:%M:%S"` | 2026-01-07 14:30:00 |
+| 日期 | `date "+%Y-%m-%d"` | 2026-01-07 |
+| 时间 | `date "+%H:%M:%S"` | 14:30:00 |
+| Unix 时间戳 | `date +%s` | 1704609000 |
+
+**【重要】审计日志中记录时间时，必须使用上述命令获取，禁止猜测或估算。**
+
 ---
 
 # 文件结构规范
@@ -317,14 +383,17 @@ openspec/                  # 项目目录
 
 spec-runner/                # 技能目录
 ├── SKILL.md                # 本文件
-└── references/             # Prompt 模板（7 个步骤 + 批量执行）
+└── references/             # Prompt 模板（8 个步骤 + 批量执行）
     ├── proposal_single_prompt.md    # 步骤 1
     ├── design_tasks_prompt.md       # 步骤 2
     ├── three_gates_prompt.md        # 步骤 3
     ├── proposal_review_prompt.md    # 步骤 4
     ├── apply_prompt.md              # 步骤 5
-    ├── archive_prompt.md            # 步骤 6-7
+    ├── archive_prompt.md            # 步骤 7（归档）
+    ├── git_commit_prompt.md         # 步骤 8（Git 提交）
     ├── batch_execute_prompt.md      # 多 CP 批量执行
+    ├── time_helper.md               # 时间获取工具
+    ├── testing_helper.md            # 场景驱动测试指南
     └── [审计模板文件...]
 ```
 
