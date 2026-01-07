@@ -63,15 +63,28 @@ pytest / npm test
 6. 归档完成后 → 进入步骤 7（Git 提交），不要停下等待
 ```
 
-### 归档命令
+### 归档命令（严格执行）
 
 ```bash
-# 获取当前时间（审计用）
+# 1. 获取当前时间（审计用）
 date "+%Y-%m-%d %H:%M:%S"
 
-# 归档 change
+# 2. 验证 Change ID
+openspec list
+
+# 3. 执行归档
 openspec archive <change-id> --yes
+
+# 4. 验证归档结果
+openspec validate --strict
+openspec show <change-id>
 ```
+
+### 归档命名规范
+
+归档后的目录将被自动重命名为：`YYYY-MM-DD-[change-name]`
+- 这是 OpenSpec 自动处理的
+- 对应归档位置：`openspec/changes/archive/YYYY-MM-DD-[change-name]/`
 
 ### 归档完成后的行为
 

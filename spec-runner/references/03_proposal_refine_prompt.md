@@ -117,6 +117,21 @@ TIME=$(date "+%Y-%m-%d %H:%M:%S")
 # 3. 立即更新 AUDIT.md 决策记录索引
 ```
 
+### 步骤结束时验证
+
+提案细化完成后，必须执行：
+
+```bash
+# 验证提案格式
+openspec validate <change-id> --strict
+
+# 查看 delta 详情
+openspec show <change-id> --json --deltas-only
+```
+
+- 修复所有验证错误后继续
+- 验证通过后 → 进入**步骤 4：评审提案**
+
 ### 步骤结束时
 
 ```bash

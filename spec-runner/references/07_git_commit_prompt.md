@@ -14,10 +14,66 @@
 | **精确范围** | 只提交本次 change 相关的文件 |
 | **规范消息** | commit message 包含 change-id 和概要 |
 | **完整记录** | commit 记录到 AUDIT.md |
+| **最终核查** | Git 提交前必须完成所有核查项 |
 
 ## 执行步骤
 
-### 步骤 8.1：获取当前时间
+### 步骤 7.1：最终核查（Git 提交前必须执行）
+
+**在执行任何 git 操作之前，必须完成以下核查**：
+
+#### 核查 1：Spec 文档完整性
+
+```bash
+# 验证提案格式
+openspec validate <change-id> --strict
+
+# 查看 delta 详情，确认所有变更都已记录
+openspec show <change-id> --json --deltas-only
+```
+
+#### 核查 2：任务完成情况
+
+```bash
+# 检查所有任务是否都已打勾
+grep "\- \[ \]" changes/<change-id>/tasks.md
+# 如果输出有任何内容，说明有未完成任务，必须先完成
+
+# 确认所有任务已完成
+grep "\- \[x\]" changes/<change-id>/tasks.md | wc -l
+# 应该等于任务总数
+```
+
+#### 核查 3：提案整体符合要求
+
+```bash
+# 检查必需文件是否存在
+ls changes/<change-id>/proposal.md
+ls changes/<change-id>/tasks.md
+ls changes/<change-id>/AUDIT.md
+ls changes/<change-id>/specs/
+```
+
+#### 核查 4：测试覆盖
+
+```bash
+# 确认所有 Spec Scenarios 都有测试覆盖
+# (根据项目类型执行相应的测试命令)
+pytest / npm test
+```
+
+#### 核查结果处理
+
+| 核查项 | 通过标准 | 不通过处理 |
+|--------|----------|-----------|
+| Spec 文档完整性 | `openspec validate` 无错误 | 修复后重新验证 |
+| 任务完成情况 | 所有任务都是 `[x]` | 完成未完成任务 |
+| 提案符合要求 | 所有必需文件存在 | 补充缺失文件 |
+| 测试覆盖 | 所有测试通过 | 修复失败的测试 |
+
+**只有所有核查项都通过后，才能执行 git 操作。**
+
+### 步骤 7.2：获取当前时间
 
 ```bash
 # 获取准确时间，禁止猜测
