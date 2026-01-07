@@ -192,3 +192,50 @@ Message: [commit message 第一行]
 | 问题ID | 描述 | 优先级 | 后续处理 |
 |--------|------|--------|----------|
 | ISSUE-1 | [问题描述] | 高/中/低 | [后续change或解决方案] |
+
+---
+
+## 时间获取命令（审计专用）
+
+**【重要】审计日志中记录时间时，必须使用命令获取，禁止猜测或估算。**
+
+### 快捷命令
+
+| 需求 | 命令 | 输出示例 |
+|------|------|----------|
+| 完整时间 | `date "+%Y-%m-%d %H:%M:%S"` | 2026-01-07 14:30:00 |
+| 仅日期 | `date "+%Y-%m-%d"` | 2026-01-07 |
+| 仅时间 | `date "+%H:%M:%S"` | 14:30:00 |
+| Unix 时间戳 | `date +%s` | 1704609000 |
+
+### 耗时计算
+
+```bash
+# 开始时间
+START_SECONDS=$(date +%s)
+
+# ... 执行操作 ...
+
+# 结束时间，计算耗时（分钟）
+ELAPSED_MINUTES=$((($(date +%s) - START_SECONDS) / 60))
+```
+
+### 审计记录流程
+
+```bash
+# 步骤开始
+STEP_START_TIME=$(date "+%Y-%m-%d %H:%M:%S")
+STEP_START_SECONDS=$(date +%s)
+
+# 更新 AUDIT.md: "| 步骤X | $STEP_START_TIME | | | 进行中 |"
+
+# ... 执行操作 ...
+
+# 步骤结束
+STEP_END_TIME=$(date "+%Y-%m-%d %H:%M:%S")
+STEP_END_SECONDS=$(date +%s)
+ELAPSED_MINUTES=$((STEP_END_SECONDS - STEP_START_SECONDS))
+
+# 更新 AUDIT.md: "| 步骤X | $STEP_START_TIME | $STEP_END_TIME | ${ELAPSED_MINUTES}m | ✓ |"
+```
+
