@@ -107,13 +107,13 @@ cat ./spec-runner/SKILL.md
 
 | 步骤 | 说明 | 参考 prompt 文件 |
 |------|------|-----------------|
-| 1 | 创建提案 | `01_proposal_single_prompt.md` |
-| 2 | 设计拆解 | `02_design_tasks_prompt.md` |
-| 3 | 提案细化 | `03_proposal_refine_prompt.md` |
-| 4 | 评审提案 | `04_proposal_review_prompt.md` |
-| 5 | Apply 施工 | `05_apply_prompt.md` |
-| 6 | 归档 | `06_archive_prompt.md` |
-| 7 | Git 提交 | `07_git_commit_prompt.md` |
+| 1 | 创建提案 | `steps/01_proposal.md` |
+| 2 | 设计拆解 | `steps/02_design_tasks.md` |
+| 3 | 提案细化 | `steps/03_refine.md` |
+| 4 | 评审提案 | `steps/04_review.md` |
+| 5 | Apply 施工 | `steps/05_apply.md` |
+| 6 | 归档 | `steps/06_archive.md` |
+| 7 | Git 提交 | `steps/07_commit.md` |
 
 **错误处理**：
 - 任一阶段失败：记录到 AUDIT.md，继续下一个 CP（不阻塞批量执行）

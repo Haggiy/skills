@@ -65,10 +65,15 @@
 ### 参考 Prompt 文件（技能目录）
 ```
 ./spec-runner/references/
-├── 00_testing_helper.md          # 测试执行原则
-├── 00_STATE_RELOAD_template.md   # 本模板
-├── [当前步骤]_prompt.md           # 当前步骤的详细指令
-└── [下一步骤]_prompt.md           # 下一步骤的详细指令
+├── guides/testing.md             # 测试执行原则
+├── templates/STATE_RELOAD.md     # 本模板
+├── steps/01_proposal.md          # 步骤 1
+├── steps/02_design_tasks.md      # 步骤 2
+├── steps/03_refine.md            # 步骤 3
+├── steps/04_review.md            # 步骤 4
+├── steps/05_apply.md             # 步骤 5
+├── steps/06_archive.md           # 步骤 6
+└── steps/07_commit.md            # 步骤 7
 ```
 
 ### 项目规范
@@ -83,7 +88,7 @@
 **如果你正在读取此文件，说明上下文已被压缩。请立即执行以下步骤：**
 
 1. 读取 `./openspec/changes/[change-id]/AUDIT.md` 获取完整执行历史
-2. 读取 `./spec-runner/references/[当前步骤]_prompt.md` 获取详细指令
+2. 读取 `./spec-runner/references/steps/[0X]_*.md` 获取当前步骤详细指令
 3. 检查 `./openspec/changes/[change-id]/tasks.md` 确认任务进度
 4. 根据"下一步行动"继续执行
 

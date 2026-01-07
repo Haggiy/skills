@@ -93,14 +93,14 @@ npm run test:e2e
 date "+%Y-%m-%d %H:%M:%S"
 ```
 
-### 步骤 8.2：查看变更
+### 步骤 7.3：查看变更
 
 ```bash
 # 查看当前变更状态
 git status
 ```
 
-### 步骤 8.3：添加文件
+### 步骤 7.4：添加文件
 
 ```bash
 # 只添加本次 change 相关的文件
@@ -114,7 +114,7 @@ git add openspec/specs/[相关capability]/
 - 不相关的配置文件
 - node_modules、__pycache__ 等依赖目录
 
-### 步骤 8.4：生成 Commit Message
+### 步骤 7.5：生成 Commit Message
 
 **格式规范**：
 
@@ -144,7 +144,7 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
 
-### 步骤 8.5：执行提交
+### 步骤 7.6：执行提交
 
 ```bash
 # 使用 HEREDOC 确保格式正确
@@ -154,7 +154,7 @@ EOF
 )"
 ```
 
-### 步骤 8.6：获取 Commit Hash
+### 步骤 7.7：获取 Commit Hash
 
 ```bash
 # 获取刚提交的 hash
@@ -163,12 +163,12 @@ git rev-parse HEAD
 git log -1 --format='%H'
 ```
 
-### 步骤 8.7：记录到 AUDIT.md
+### 步骤 7.8：记录到 AUDIT.md
 
-更新 AUDIT.md，添加步骤 8 的完成记录：
+更新 AUDIT.md，添加步骤 7 的完成记录：
 
 ```markdown
-### 8. Git 提交
+### 7. Git 提交
 
 **执行时间**: YYYY-MM-DD HH:MM - HH:MM
 **耗时**: Xm

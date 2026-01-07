@@ -28,7 +28,7 @@
 
 ## 测试场景设计（场景驱动测试）
 
-**参考**：详见 `00_testing_helper.md` 的测试设计原则。
+**参考**：详见 `references/guides/testing.md` 的测试设计原则。
 
 ### 从 Spec Scenarios 映射测试场景
 

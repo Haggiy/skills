@@ -82,7 +82,7 @@ pytest -v --tb=short
 
 ## 归档前检查
 
-**参考**：详见 `00_testing_helper.md` 的修改问题原则。
+**参考**：详见 `references/guides/testing.md` 的修改问题原则。
 
 ### 检查点 1：测试覆盖
 
@@ -180,10 +180,10 @@ openspec show <change-id>
 
 ## 审计日志要求
 
-**步骤 7 开始时**：在 AUDIT.md 时间线中添加
+**步骤 6 开始时**：在 AUDIT.md 时间线中添加
 
 ```markdown
-| 步骤7：归档 | [开始时间] | | | 进行中 |
+| 步骤6：归档 | [开始时间] | | | 进行中 |
 ```
 
 **归档检查点执行时**：
@@ -191,4 +191,4 @@ openspec show <change-id>
 2. 更新 AUDIT.md 记录检查结果
 3. 如有问题，记录到 AUDIT.md 遗留问题区域
 
-**步骤 7 完成时**：更新 AUDIT.md 时间线（记录结束时间和耗时）
+**步骤 6 完成时**：更新 AUDIT.md 时间线（记录结束时间和耗时）
