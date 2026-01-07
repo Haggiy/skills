@@ -73,6 +73,36 @@
 
 按 cps.md 文件中的顺序，从前向后依次执行每个 CP。
 
+### 每个 CP 开始时的状态检查
+
+**由于多 CP 模式上下文累积更快，每个 CP 开始前必须执行**：
+
+```bash
+# 1. 自我检查：能否回忆核心原则？
+# 2. 检查是否需要恢复（上下文是否被压缩）
+# 3. 如果是，读取 STATE_RELOAD.md 和 AUDIT.md
+# 4. 确认当前是第 X/Y 个 CP
+# 5. 继续执行
+```
+
+**压缩恢复步骤**：
+```bash
+# 1. 读取上一个 CP 的 STATE_RELOAD.md
+cat ./openspec/changes/[上一个-change-id]/STATE_RELOAD.md
+
+# 2. 读取当前 CP 的 STATE_RELOAD.md（如果存在）
+cat ./openspec/changes/[当前-change-id]/STATE_RELOAD.md
+
+# 3. 重新读取 SKILL.md 刷新核心原则
+cat ./spec-runner/SKILL.md
+```
+
+### CP 之间的状态隔离
+
+- 每个 CP 执行完成后，更新 STATE_RELOAD.md
+- 记录当前进度（已完成 X/Y 个 CP）
+- 下一个 CP 开始时使用这些信息恢复
+
 **每个 CP 执行步骤**（详见 SKILL.md "单 CP 执行模式"）：
 
 | 步骤 | 说明 | 参考 prompt 文件 |

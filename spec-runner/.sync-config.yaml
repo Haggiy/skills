@@ -1,0 +1,22 @@
+# Spec-Runner 技能同步配置
+# 此文件用于自动化同步技能到 GitHub 和本地技能目录
+
+source_dir: /home/haggiy/pythonProject/14_hello_cc_skiils_plugins/spec-runner/
+
+github_sync_dir: /home/haggiy/github-skills/spec-runner/
+github_repo: https://github.com/Haggiy/skills.git
+github_branch: main
+
+local_skills:
+  claude: ~/.claude/skills/spec-runner/
+  codex: ~/.codex/skills/spec-runner/
+
+# 排除不需要同步的文件
+exclude:
+  - .sync-config.yaml
+
+sync_command: |
+  1. rsync -av --delete --exclude='.sync-config.yaml' {source_dir} {github_sync_dir}
+  2. cd {github_sync_dir} && git add . && git commit && git push
+  3. rsync -av --delete --exclude='.sync-config.yaml' {source_dir} {claude}
+  4. rsync -av --delete --exclude='.sync-config.yaml' {source_dir} {codex}

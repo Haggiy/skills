@@ -143,6 +143,24 @@ END_TIME=$(date "+%Y-%m-%d %H:%M:%S")
 # 4. 如有文件修改，创建 .audit/ 快照
 ```
 
+### 步骤结束时创建 STATE_RELOAD.md
+
+**步骤 3 结束时必须创建 STATE_RELOAD.md**（这是第一个压缩恢复点！）：
+
+```bash
+# 参考模板：./spec-runner/references/templates/STATE_RELOAD.md
+# 创建文件：
+./openspec/changes/[change-id]/STATE_RELOAD.md
+```
+
+**必填内容**：
+- Change ID
+- 当前步骤：步骤 3 结束
+- 下一步：步骤 4 评审提案
+- 核心原则（从 SKILL.md 提炼）
+- 提案关键信息（从 proposal.md 提炼）
+- 下一步行动：评审提案与现有体系的兼容性
+
 **禁止延迟记录或批量记录审计信息。**
 
 ### DECISIONS.md 格式

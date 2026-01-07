@@ -4,6 +4,46 @@
 
 单 CP 执行模式的第 5 步。在步骤 4（评审提案）完成后自动批准并进入。
 
+## 步骤开始：状态检查（压缩恢复点）
+
+**【重要】步骤 5 是最长步骤，压缩风险最高。进入本步骤时，必须首先执行状态检查。**
+
+### 检查 1：上下文完整性
+
+```
+请自我检查：
+- 你能完整回忆起 spec-runner 的 7 条核心原则吗？
+- 你知道"全绿才能打勾"的测试原则吗？
+- 你知道禁止哪些取巧行为吗？
+```
+
+**如果任何答案为"否"**，立即执行恢复：
+
+```bash
+# 1. 读取状态恢复文件
+cat ./openspec/changes/[change-id]/STATE_RELOAD.md
+
+# 2. 读取审计日志
+cat ./openspec/changes/[change-id]/AUDIT.md
+
+# 3. 刷新核心原则
+cat ./spec-runner/SKILL.md
+
+# 4. 读取测试原则
+cat ./spec-runner/references/guides/testing.md
+
+# 5. 重新读取本文件
+cat ./spec-runner/references/steps/05_apply.md
+```
+
+### 检查 2：确认当前状态
+
+- 确认 `change-id` 是否正确
+- 确认步骤 1-4 已完成（查看 AUDIT.md）
+- 读取 tasks.md 确认任务列表
+
+**只有完成状态检查后，才继续执行施工工作。**
+
 ## 施工前验证
 
 ```bash
@@ -23,7 +63,7 @@ specs 已对齐，提案已自动批准（spec-runner 模式）。
 - 遇到不明确之处基于项目规范自主决策并记录到 DECISIONS.md
 - 使用 TodoWrite 跟踪实时进度
 
-**参考**：详见 `00_testing_helper.md` 的测试执行原则。
+**参考**：详见 `references/guides/testing.md` 的测试执行原则。
 
 每个任务必须配套自动化测试，测试全绿后才能打勾：
 1. 实现功能代码
@@ -158,6 +198,26 @@ TIME=$(date "+%Y-%m-%d %H:%M:%S")
 **测试结果**: ✓ 全绿（X/X 通过）
 **覆盖 Scenarios**: N/N（补充边界场景 M 个）
 ```
+
+### 检测到压缩时的中途恢复
+
+**在步骤 5 执行过程中，如果怀疑上下文被压缩**（如无法回忆起测试原则），立即执行：
+
+```bash
+# 1. 更新 STATE_RELOAD.md（记录当前任务进度）
+# 2. 读取测试原则
+cat ./spec-runner/references/guides/testing.md
+# 3. 刷新核心原则
+cat ./spec-runner/SKILL.md
+# 4. 读取 AUDIT.md 确认已完成任务
+cat ./openspec/changes/[change-id]/AUDIT.md
+# 5. 继续下一个任务
+```
+
+**STATE_RELOAD.md 更新内容**：
+- 当前步骤：步骤 5 进行中
+- 当前任务：已完成 X/N，正在执行任务 X+1
+- 下一步行动：[下一个任务的具体内容]
 
 ### 步骤结束时
 
