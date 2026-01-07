@@ -34,7 +34,7 @@
 
 ## spec-runner 执行原则
 
-**【最高优先级】连续执行，不要停下等待确认**
+**必须连续执行，不得停下等待确认**
 
 - 所有阶段之间自动流转
 - 遇到不明确之处：基于 openspec/project.md 自主决策，记录到 DECISIONS.md
@@ -77,13 +77,13 @@
 
 | 步骤 | 说明 | 参考 prompt 文件 |
 |------|------|-----------------|
-| 1 | 创建提案 | `proposal_single_prompt.md` |
-| 2 | 设计拆解 | `design_tasks_prompt.md` |
-| 3 | 3 道关卡打磨 | `three_gates_prompt.md` |
-| 4 | 评审提案 | `proposal_review_prompt.md` |
-| 5 | Apply 施工 | `apply_prompt.md` |
-| 6 | 测试验证 | （在 apply_prompt.md 中） |
-| 7 | 归档 | `archive_prompt.md` |
+| 1 | 创建提案 | `01_proposal_single_prompt.md` |
+| 2 | 设计拆解 | `02_design_tasks_prompt.md` |
+| 3 | 提案细化 | `03_proposal_refine_prompt.md` |
+| 4 | 评审提案 | `04_proposal_review_prompt.md` |
+| 5 | Apply 施工 | `05_apply_prompt.md` |
+| 6 | 归档 | `06_archive_prompt.md` |
+| 7 | Git 提交 | `07_git_commit_prompt.md` |
 
 **错误处理**：
 - 任一阶段失败：记录到 AUDIT.md，继续下一个 CP（不阻塞批量执行）
