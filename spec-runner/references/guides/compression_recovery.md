@@ -56,5 +56,5 @@ cat ./spec-runner/references/steps/[0X]_*.md
 1. `STATE_RELOAD.md`（当前 change 目录）- 核心状态
 2. `AUDIT.md`（当前 change 目录）- 执行历史
 3. `SKILL.md` - 刷新核心原则
-4. `[当前步骤]_prompt.md`（`references/steps/`）- 详细指令
-5. `testing.md`（`references/guides/`）- 测试原则（如适用）
+4. `steps/[0X]_*.md` - 当前步骤详细指令
+5. `guides/testing.md` - 测试原则（如适用）
