@@ -63,19 +63,47 @@
 
 ## 测试命令
 
-### Python (pytest)
+### 单功能测试（开发时使用）
 ```bash
-pytest                          # 所有测试
 pytest tests/xxx_test.py -v     # 指定文件
-pytest --cov=src                # 覆盖率
+npm test -- xxx.test.js         # 指定文件
 ```
 
-### JavaScript/TypeScript (npm/jest)
+### 全量测试（步骤 6 和 Git 提交前必须执行）
+
+**Python (pytest)**
 ```bash
-npm test                        # 所有测试
-npm test -- xxx.test.js         # 指定文件
-npm test -- --coverage          # 覆盖率
+# 运行所有 pytest 测试
+pytest -v
+pytest tests/ -v
+
+# 运行 e2e 测试（如果存在）
+pytest tests/e2e/ -v
+pytest e2e/ -v
+
+# 覆盖率
+pytest --cov=src --cov-report=term-missing
 ```
+
+**JavaScript/TypeScript (npm/jest)**
+```bash
+# 运行所有测试
+npm test
+
+# 运行 e2e 测试（如果存在）
+npm run test:e2e
+npm run test:e2e -- --headed
+
+# 覆盖率
+npm test -- --coverage
+```
+
+### 重要区分
+
+| 场景 | 测试范围 | 使用时机 |
+|------|----------|----------|
+| 单功能测试 | 单个测试文件 | 步骤 5 每个任务完成后 |
+| 全量测试 | 所有 pytest + 所有 e2e | 步骤 6 归档前、Git 提交前核查 |
 
 ## 测试结果记录
 

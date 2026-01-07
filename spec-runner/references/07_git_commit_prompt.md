@@ -54,13 +54,26 @@ ls changes/<change-id>/AUDIT.md
 ls changes/<change-id>/specs/
 ```
 
-#### 核查 4：测试覆盖
+#### 核查 4：全量测试验证（必须再次确认）
 
 ```bash
-# 确认所有 Spec Scenarios 都有测试覆盖
-# (根据项目类型执行相应的测试命令)
-pytest / npm test
+# 在 Git 提交前，必须再次运行全量测试确认
+
+# 1. 运行所有 pytest 测试
+pytest -v
+
+# 2. 运行 e2e 测试（如果有）
+pytest tests/e2e/ -v
+# 或
+pytest e2e/ -v
+# 或
+npm run test:e2e
+
+# 3. 确认所有测试通过（输出中无 failed）
 ```
+
+**通过标准**：所有类型测试全绿，无任何 failed
+**不通过处理**：修复问题后重新核查，不得跳过此步骤
 
 #### 核查结果处理
 
@@ -69,7 +82,7 @@ pytest / npm test
 | Spec 文档完整性 | `openspec validate` 无错误 | 修复后重新验证 |
 | 任务完成情况 | 所有任务都是 `[x]` | 完成未完成任务 |
 | 提案符合要求 | 所有必需文件存在 | 补充缺失文件 |
-| 测试覆盖 | 所有测试通过 | 修复失败的测试 |
+| 全量测试验证 | 所有测试全绿（pytest + e2e） | 修复失败的测试 |
 
 **只有所有核查项都通过后，才能执行 git 操作。**
 

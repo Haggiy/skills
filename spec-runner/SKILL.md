@@ -78,24 +78,24 @@ OpenSpec 的执行引擎，自动执行完整开发流程。
 
 | 步骤 | 文件 | 内容 |
 |------|------|------|
-| 1 | 01_proposal_single_prompt.md | 创建提案 |
-| 2 | 02_design_tasks_prompt.md | 设计拆解+测试场景 |
-| 3 | 03_proposal_refine_prompt.md | 提案细化 |
-| 4 | 04_proposal_review_prompt.md | 评审提案 |
-| 5 | 05_apply_prompt.md | Apply施工与测试 |
-| 6 | 06_archive_prompt.md | 全量测试与归档 |
-| 7 | 07_git_commit_prompt.md | Git 提交 |
+| 1 | references/01_proposal_single_prompt.md | 创建提案 |
+| 2 | references/02_design_tasks_prompt.md | 设计拆解+测试场景 |
+| 3 | references/03_proposal_refine_prompt.md | 提案细化 |
+| 4 | references/04_proposal_review_prompt.md | 评审提案 |
+| 5 | references/05_apply_prompt.md | Apply施工与测试 |
+| 6 | references/06_archive_prompt.md | 全量测试与归档 |
+| 7 | references/07_git_commit_prompt.md | Git 提交 |
 
 ### 辅助文件
 在执行过程中按需查阅。
 
 | 文件 | 阅读时机 |
 |------|----------|
-| 00_AUDIT_template.md | 步骤 1 初始化 AUDIT.md |
-| 00_AUDIT_snapshot_template.md | 各步骤有文件变更时 |
-| 00_DECISIONS_template.md | 有 TBD 决策时 |
-| 00_testing_helper.md | 步骤 2 设计测试、步骤 5 执行测试、归档前验证 |
-| 00_batch_execute_prompt.md | 用户要求批量执行时 |
+| references/00_AUDIT_template.md | 步骤 1 初始化 AUDIT.md |
+| references/00_AUDIT_snapshot_template.md | 各步骤有文件变更时 |
+| references/00_DECISIONS_template.md | 有 TBD 决策时 |
+| references/00_testing_helper.md | 步骤 2 设计测试、步骤 5 执行测试、归档前验证 |
+| references/00_batch_execute_prompt.md | 用户要求批量执行时 |
 
 ## 时间命令
 
